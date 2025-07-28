@@ -46,6 +46,7 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 	const [duration, setDuration] = useState(0);
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 
+	
 	useEffect(() => {
 		audioRef.current = document.querySelector("audio");
 
@@ -162,13 +163,6 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 							<SkipForward className='h-4 w-4' />
 						</Button>
 
-						<Button
-							size='icon'
-							variant='ghost'
-							className='hidden sm:inline-flex text-white hover:text-black hover:bg-white'
-						>
-							<Repeat className='h-4 w-4' />
-						</Button>
 					</div>
 
 					<div className='hidden sm:flex items-center gap-2 w-full'>
@@ -186,15 +180,8 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 
 				{/* volume controls */}
 				<div className='hidden sm:flex items-center gap-4 min-w-[180px] w-[30%] justify-end text-white'>
-					<Button size='icon' variant='ghost' className='text-white hover:text-black hover:bg-white'>
-						<Mic2 className='h-4 w-4' />
-					</Button>
-					<Button size='icon' variant='ghost' className='text-white hover:text-black hover:bg-white'>
-						<ListMusic className='h-4 w-4' />
-					</Button>
-					<Button size='icon' variant='ghost' className='text-white hover:text-black hover:bg-white'>
-						<Laptop2 className='h-4 w-4' />
-					</Button>
+					
+					
 
 					<div className='flex items-center gap-2'>
 						<Button size='icon' variant='ghost' className='text-white hover:text-black hover:bg-white'>

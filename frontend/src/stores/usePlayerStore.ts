@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { Song } from "@/types";
-import { useChatStore } from "./useChatStore";
 import axios from "axios";
 
 interface PlayerStore {
@@ -40,14 +39,9 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 
 		const song = songs[startIndex];
 
-		const socket = useChatStore.getState().socket;
-		if (socket.auth) {
-			socket.emit("update_activity", {
-				userId: socket.auth.userId,
-				activity: `Playing ${song.title} by ${song.artist}`,
-			});
-		}
 
+
+		console.log("add to history", song._id);
 		get().addToHistory(song._id);
 
 		set({
@@ -61,13 +55,9 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 	setCurrentSong: async (song: Song | null) => {
 		if (!song) return;
 
-		const socket = useChatStore.getState().socket;
-		if (socket.auth) {
-			socket.emit("update_activity", {
-				userId: socket.auth.userId,
-				activity: `Playing ${song.title} by ${song.artist}`,
-			});
-		}
+
+
+		console.log("add to history", song._id);
 
 		get().addToHistory(song._id);
 
@@ -83,14 +73,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		const willStartPlaying = !get().isPlaying;
 
 		const currentSong = get().currentSong;
-		const socket = useChatStore.getState().socket;
-		if (socket.auth) {
-			socket.emit("update_activity", {
-				userId: socket.auth.userId,
-				activity:
-					willStartPlaying && currentSong ? `Playing ${currentSong.title} by ${currentSong.artist}` : "Idle",
-			});
-		}
+
 
 		set({
 			isPlaying: willStartPlaying,
@@ -104,13 +87,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		if (nextIndex < queue.length) {
 			const nextSong = queue[nextIndex];
 
-			const socket = useChatStore.getState().socket;
-			if (socket.auth) {
-				socket.emit("update_activity", {
-					userId: socket.auth.userId,
-					activity: `Playing ${nextSong.title} by ${nextSong.artist}`,
-				});
-			}
+
+			console.log("add to history", nextSong._id);
 
 			get().addToHistory(nextSong._id);
 
@@ -122,13 +100,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		} else {
 			set({ isPlaying: false });
 
-			const socket = useChatStore.getState().socket;
-			if (socket.auth) {
-				socket.emit("update_activity", {
-					userId: socket.auth.userId,
-					activity: `Idle`,
-				});
-			}
 		}
 	},
 
@@ -139,14 +110,8 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		if (prevIndex >= 0) {
 			const prevSong = queue[prevIndex];
 
-			const socket = useChatStore.getState().socket;
-			if (socket.auth) {
-				socket.emit("update_activity", {
-					userId: socket.auth.userId,
-					activity: `Playing ${prevSong.title} by ${prevSong.artist}`,
-				});
-			}
 
+			console.log("add to history", prevSong._id);
 			get().addToHistory(prevSong._id);
 
 			set({
@@ -157,35 +122,41 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
 		} else {
 			set({ isPlaying: false });
 
-			const socket = useChatStore.getState().socket;
-			if (socket.auth) {
-				socket.emit("update_activity", {
-					userId: socket.auth.userId,
-					activity: `Idle`,
-				});
-			}
+
 		}
 	},
 
 	likeSong: async (songId: string) => {
-		try {
-			await axios.post(`/api/songs/${songId}/like`);
-		} catch (err) {
-			console.error("Error liking song:", err);
-		}
-	},
-	dislikeSong: async (songId: string) => {
-		try {
-			await axios.post(`/api/songs/${songId}/dislike`);
-		} catch (err) {
-			console.error("Error disliking song:", err);
-		}
-	},
-	addToHistory: async (songId: string) => {
-		try {
-			await axios.post(`/api/history/${songId}`);
-		} catch (err) {
-			console.error("Error adding to history:", err);
-		}
-	}
+        console.log("like song", songId);
+        try {
+            // Using original axios and adding withCredentials directly to the request
+            await axios.post(`http://localhost:5000/api/songs/${songId}/like`, null, {
+                withCredentials: true,
+            });
+        } catch (err) {
+            console.error("Error liking song:", err);
+        }
+    },
+    dislikeSong: async (songId: string) => {
+        console.log("dislike song", songId);
+        try {
+            // Using original axios and adding withCredentials directly to the request
+            await axios.post(`http://localhost:5000/api/songs/${songId}/dislike`, null, {
+                withCredentials: true,
+            });
+        } catch (err) {
+            console.error("Error disliking song:", err);
+        }
+    },
+    addToHistory: async (songId: string) => {
+        console.log("add to history", songId);
+        try {
+            // Using original axios and adding withCredentials directly to the request
+            await axios.post(`http://localhost:5000/api/songs/history/${songId}`, null, {
+                withCredentials: true,
+            });
+        } catch (err) {
+            console.error("Error adding to history:", err);
+        }
+    }
 }));
