@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Topbar from "../components/Topbar";
 import LeftSidebar from "./components/LeftSidebar";
-import AiSidebar from "./components/AiChat"; // Updated to use AiSidebar instead of FriendsActivity
+import AiChat from "./components/AiChat";
 import AudioPlayer from "./components/AudioPlayer";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { useEffect, useState } from "react";
@@ -47,7 +47,7 @@ const MainLayout = () => {
         {/* AiSidebar */}
         {!isMobile && isFriendsPanelOpen && (
           <div className="absolute right-0 top-0 h-full">
-            <AiSidebar />
+            <AiChat />
           </div>
         )}
       </main>

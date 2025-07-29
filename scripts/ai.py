@@ -24,4 +24,4 @@ if __name__ == "__main__":
     log(f"📥 Received query: {query}")
     embedding = generate_embedding(query)
     log("📤 Returning embedding as JSON")
-    print(json.dumps(embedding))  # Final output goes ONLY to stdout
+    print(json.dumps(embedding))  # This goes to stdout cleanly

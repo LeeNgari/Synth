@@ -308,7 +308,7 @@ export const addToHistory = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
-const enhanceSongs = async (songs, currentUser) => {
+export const enhanceSongs = async (songs, currentUser) => {
     const likedSet = new Set(
         currentUser?.likedSongs?.map(s =>
             s?._id ? s._id.toString() : s.toString()

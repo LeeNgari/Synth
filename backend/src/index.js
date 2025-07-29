@@ -1,7 +1,6 @@
-import express from 'express';
-import cors from "cors"
 import { configDotenv } from "dotenv";
-import { connectDB } from "./lib/db.js"
+configDotenv()
+
 import { clerkMiddleware } from "@clerk/express"
 import fileUpload from "express-fileupload"
 import path from 'path';
@@ -14,14 +13,20 @@ import albumRoutes from "./routes/album-route.js"
 import statRoutes from "./routes/stat-route.js"
 import playlistRoutes from "./routes/playlist-routes.js"
 import aiRoutes from "./routes/ai-route.js"
+import geminiRoutes from "./routes/gemini-route.js"
 import { create } from 'domain';
 
+import express from 'express';
+import cors from "cors"
+
+
+
+import { connectDB } from "./lib/db.js"
 
 const app = express()
 const PORT = process.env.PORT || 5000
 const __dirname = path.resolve()
 
-configDotenv()
 
 app.use(cors({
     origin: 'http://localhost:3000', // or use '*' to allow all origins (not recommended for production)
@@ -50,6 +55,7 @@ app.use("/api/albums", albumRoutes)
 app.use("/api/stats", statRoutes)
 app.use("/api/playlists", playlistRoutes)
 app.use("/api/ai", aiRoutes)
+app.use("/api/gemini", geminiRoutes)
 
 app.use((err, req, res, next) => {
 
