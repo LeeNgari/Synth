@@ -13,6 +13,7 @@ import songRoutes from "./routes/song-route.js"
 import albumRoutes from "./routes/album-route.js"
 import statRoutes from "./routes/stat-route.js"
 import playlistRoutes from "./routes/playlist-routes.js"
+import aiRoutes from "./routes/ai-route.js"
 import { create } from 'domain';
 
 
@@ -48,6 +49,7 @@ app.use("/api/songs", songRoutes)
 app.use("/api/albums", albumRoutes)
 app.use("/api/stats", statRoutes)
 app.use("/api/playlists", playlistRoutes)
+app.use("/api/ai", aiRoutes)
 
 app.use((err, req, res, next) => {
 

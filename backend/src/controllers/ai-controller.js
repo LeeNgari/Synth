@@ -3,10 +3,14 @@ import { song } from "../models/song-model.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Fix relative path to Python file using ES module-safe method
+// ES module-safe __dirname resolution
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const pythonScriptPath = path.resolve(__dirname, "../../../scripts/index.py");
+
+// ✅ Path to Python script
+const pythonScriptPath = path.resolve(__dirname, "../../../scripts/ai.py");
+
+
 
 export const clapSearchHandler = async (req, res) => {
 	try {
@@ -16,19 +20,26 @@ export const clapSearchHandler = async (req, res) => {
 			return res.status(400).json({ success: false, message: "Query is required" });
 		}
 
-		console.log("Calling CLAP script with query:", query);
+		console.log("Running CLAP script for query:", query);
+		const pythonPath = "/home/lee-ngari/project/synthprep/spotdl/venv/bin/python";
 
-		const process = spawn("python3", [pythonScriptPath, query]);
+		const process = spawn(pythonPath, [pythonScriptPath, query], {
+			stdio: ["ignore", "pipe", "pipe"]
+		});
+
+
 
 		let result = "";
 
 		process.stdout.on("data", (data) => {
+			console.log("[PYTHON STDOUT]", data.toString());
 			result += data.toString();
 		});
 
 		process.stderr.on("data", (data) => {
-			console.error("Python error:", data.toString());
+			console.error("[PYTHON STDERR]", data.toString());
 		});
+
 
 		process.on("close", async (code) => {
 			if (code !== 0) {
@@ -37,22 +48,32 @@ export const clapSearchHandler = async (req, res) => {
 
 			let embedding;
 			try {
-				embedding = JSON.parse(result);
+				// Clean any trailing logs, then parse
+				const jsonStart = result.indexOf("[");
+				const jsonEnd = result.lastIndexOf("]") + 1;
+				const cleanJson = result.slice(jsonStart, jsonEnd);
+
+				embedding = JSON.parse(cleanJson);
+
+				if (!Array.isArray(embedding) || embedding.length !== 512) {
+					throw new Error("Invalid embedding shape");
+				}
 			} catch (err) {
+				console.error("Failed to parse embedding:", err);
 				return res.status(500).json({ success: false, message: "Failed to parse embedding" });
 			}
 
-			console.log("Embedding received, querying MongoDB");
+			console.log("✅ Embedding parsed, searching MongoDB...");
 
 			const results = await song.aggregate([
 				{
 					$vectorSearch: {
-						index: "clap-song-index", // Replace with your actual index name
+						index: "vector_index",
 						queryVector: embedding,
 						path: "embedding",
 						numCandidates: 100,
-						limit: 10
-					}
+						limit: 10,
+					},
 				},
 				{
 					$project: {
@@ -62,13 +83,14 @@ export const clapSearchHandler = async (req, res) => {
 						imageUrl: 1,
 						duration: 1,
 						album: 1,
-						score: { $meta: "vectorSearchScore" }
-					}
-				}
+						score: { $meta: "vectorSearchScore" },
+					},
+				},
 			]);
 
-			return res.status(200).json({ success: true, songs: results });
+			res.status(200).json({ success: true, songs: results });
 		});
+
 	} catch (err) {
 		console.error("CLAP search failed:", err);
 		res.status(500).json({ success: false, message: "Server error" });
