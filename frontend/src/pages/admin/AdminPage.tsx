@@ -1,5 +1,4 @@
 import { useAuthStore } from "@/stores/useAuthStore";
-import Header from "./components/Header";
 import DashboardStats from "./components/DashboardStats";
 import { Album, Music } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
