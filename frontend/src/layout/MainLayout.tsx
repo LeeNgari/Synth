@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Topbar from "../components/Topbar";
 import LeftSidebar from "./components/LeftSidebar";
-import AiSidebar from "./components/FriendsActivity"; // Updated to use AiSidebar instead of FriendsActivity
+import AiSidebar from "./components/AiChat"; // Updated to use AiSidebar instead of FriendsActivity
 import AudioPlayer from "./components/AudioPlayer";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { useEffect, useState } from "react";
