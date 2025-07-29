@@ -5,15 +5,15 @@ import AddSongDialog from "./AddSongDialog";
 
 const SongsTabContent = () => {
 	return (
-		<Card>
+		<Card className='bg-[#2e6f57] '>
 			<CardHeader>
 				<div className='flex items-center justify-between'>
 					<div>
-						<CardTitle className='flex items-center gap-2'>
-							<Music className='size-5 text-emerald-500' />
+						<CardTitle className='flex items-center gap-2 text-white'>
+							<Music className='size-5 text-white' />
 							Songs Library
 						</CardTitle>
-						<CardDescription>Manage your music tracks</CardDescription>
+						<CardDescription className="text-white">Manage your music tracks</CardDescription>
 					</div>
 					<AddSongDialog />
 				</div>

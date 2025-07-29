@@ -20,7 +20,6 @@ function App() {
 					element={<AuthenticateWithRedirectCallback signUpForceRedirectUrl={"/auth-callback"} />}
 				/>
 				<Route path='/auth-callback' element={<AuthCallbackPage />} />
-				<Route path='/admin' element={<AdminPage />} />
 
 				<Route element={<MainLayout />}>
 					<Route path='/' element={<HomePage />} />
@@ -28,6 +27,7 @@ function App() {
 					<Route path='/library' element={<LibraryPage />} />
 					<Route path='/albums/:albumId' element={<AlbumPage />} />
 					<Route path='/playlists/:playlistId' element={<PlaylistPage />} />
+					<Route path='/admin' element={<AdminPage />} />
 					<Route path='*' element={<NotFoundPage />} />
 				</Route>
 			</Routes>

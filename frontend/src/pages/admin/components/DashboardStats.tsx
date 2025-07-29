@@ -10,8 +10,8 @@ const DashboardStats = () => {
 			icon: ListMusic,
 			label: "Total Songs",
 			value: stats.totalSongs.toString(),
-			bgColor: "bg-emerald-500/10",
-			iconColor: "text-emerald-500",
+			bgColor: "bg-red-100",
+			iconColor: "text-[#2e6f57",
 		},
 		{
 			icon: Library,
@@ -37,7 +37,7 @@ const DashboardStats = () => {
 	];
 
 	return (
-		<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 '>
+		<div className='bg-[#2e6f57] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 '>
 			{statsData.map((stat) => (
 				<StatsCard
 					key={stat.label}

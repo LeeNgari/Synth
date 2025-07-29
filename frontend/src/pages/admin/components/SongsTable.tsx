@@ -25,7 +25,7 @@ const SongsTable = () => {
 	return (
 		<Table>
 			<TableHeader>
-				<TableRow className='hover:bg-zinc-800/50'>
+				<TableRow className='hover:bg-zinc-800/50 border-b-zinc-700'>
 					<TableHead className='w-[50px]'></TableHead>
 					<TableHead>Title</TableHead>
 					<TableHead>Artist</TableHead>
@@ -36,18 +36,13 @@ const SongsTable = () => {
 
 			<TableBody>
 				{songs.map((song) => (
-					<TableRow key={song._id} className='hover:bg-zinc-800/50'>
+					<TableRow key={song._id} className='hover:bg-[#2e6f57] border-b-zinc-800'>
 						<TableCell>
 							<img src={song.imageUrl} alt={song.title} className='size-10 rounded object-cover' />
 						</TableCell>
 						<TableCell className='font-medium'>{song.title}</TableCell>
 						<TableCell>{song.artist}</TableCell>
-						<TableCell>
-							<span className='inline-flex items-center gap-1 text-zinc-400'>
-								<Calendar className='h-4 w-4' />
-								{song.createdAt.split("T")[0]}
-							</span>
-						</TableCell>
+						
 
 						<TableCell className='text-right'>
 							<div className='flex gap-2 justify-end'>

@@ -136,6 +136,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axiosInstance.get("/songs");
+			console.log("Fetched songs:", response.data);
 			set({ songs: normalizeSongs(response.data) });
 		} catch (error: any) {
 			set({ error: error.message });
@@ -148,6 +149,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axiosInstance.get("/stats");
+			console.log("Fetched stats:", response.data);
 			set({ stats: response.data });
 		} catch (error: any) {
 			set({ error: error.message });

@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth-route.js"
 import adminRoutes from "./routes/admin-route.js"
 import songRoutes from "./routes/song-route.js"
 import albumRoutes from "./routes/album-route.js"
+import statRoutes from "./routes/stat-route.js"
 import playlistRoutes from "./routes/playlist-routes.js"
 import { create } from 'domain';
 
@@ -24,7 +25,7 @@ configDotenv()
 app.use(cors({
     origin: 'http://localhost:3000', // or use '*' to allow all origins (not recommended for production)
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials:true,
+    credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -45,6 +46,7 @@ app.use("/api/auth", authRoutes)
 app.use("/api/admin", adminRoutes)
 app.use("/api/songs", songRoutes)
 app.use("/api/albums", albumRoutes)
+app.use("/api/stats", statRoutes)
 app.use("/api/playlists", playlistRoutes)
 
 app.use((err, req, res, next) => {

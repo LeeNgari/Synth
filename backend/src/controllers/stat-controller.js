@@ -1,41 +1,34 @@
-import {song} from '../models/song-model.js';
+import { song } from '../models/song-model.js';
 import { user } from '../models/user-model.js';
-import {album } from '../models/album-model.js';
+import { album } from '../models/album-model.js';
 
 export const getStats = async (req, res, next) => {
-    try{
-        const {totalSongs, totalUsers, totalAlbums} = await Promise.all([
+    try {
+        // Get total counts
+        const [totalSongs, totalUsers, totalAlbums] = await Promise.all([
             song.countDocuments(),
             user.countDocuments(),
-            album.countDocuments(),
+            album.countDocuments()
+        ]);
 
-            song.aggregate(
-                {
-                $unionWith:{
-                    coll:"albums",
-                    pipeline:[]
-                }
-            },
-            {
-                $group: {
-                    _id: "$artist",
-                }
-            }, {
-                $count:"count",
-            }
-        )
+        // Get unique artists from songs
+        const songArtists = await song.distinct("artist");
 
-        ])
-        console.error(error);
+        // Get unique artists from albums
+        const albumArtists = await album.distinct("artist");
+
+        // Merge and deduplicate artist names
+        const uniqueArtistsSet = new Set([...songArtists, ...albumArtists]);
+        const totalArtists = uniqueArtistsSet.size;
+
         res.status(200).json({
             totalSongs,
             totalUsers,
             totalAlbums,
-            totalArtists: uniquesArtists[0]?.count || 0,
+            totalArtists
         });
-    }catch (error) {
+    } catch (error) {
         console.error(error);
         next(error);
     }
-    
-}
+};

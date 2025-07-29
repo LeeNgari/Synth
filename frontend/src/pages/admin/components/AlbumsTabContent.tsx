@@ -5,15 +5,15 @@ import AddAlbumDialog from "./AddAlbumDialog";
 
 const AlbumsTabContent = () => {
 	return (
-		<Card className='bg-zinc-800/50 border-zinc-700/50'>
+		<Card className='bg-[#2e6f57] '>
 			<CardHeader>
 				<div className='flex items-center justify-between'>
 					<div>
 						<CardTitle className='flex items-center gap-2'>
-							<Library className='h-5 w-5 text-violet-500' />
+							<Library className='text-white' />
 							Albums Library
 						</CardTitle>
-						<CardDescription>Manage your album collection</CardDescription>
+						<CardDescription className="text-white">Manage your album collection</CardDescription>
 					</div>
 					<AddAlbumDialog />
 				</div>
