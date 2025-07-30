@@ -1,4 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { User } from "@/types";
 import { Users } from "lucide-react";
@@ -31,43 +30,43 @@ const UsersTabContent = () => {
     }, []);
 
     return (
-        <Card className='bg-[#2e6f57]'>
-            <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                    <Users className='text-white' />
-                    User Management
-                </CardTitle>
-                <CardDescription className="text-white">View and manage users</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {isLoading && <p>Loading users...</p>}
-                {error && <p className="text-red-500">{error}</p>}
-                {!isLoading && !error && (
-                    <Table>
-                        <TableHeader>
-                            <TableRow className='hover:bg-zinc-800/50 border-b-zinc-700 text-white'>
-                                <TableHead className='w-[50px]'></TableHead>
-                                <TableHead>Full Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Joined At</TableHead>
+        <div>
+            <div className='flex items-center justify-between mb-6'>
+                <div>
+                    <h2 className='text-2xl font-bold flex items-center gap-2'>
+                        <Users className='text-white' />
+                        User Management
+                    </h2>
+                    <p className="text-white">View and manage users</p>
+                </div>
+            </div>
+            {isLoading && <p>Loading users...</p>}
+            {error && <p className="text-red-500">{error}</p>}
+            {!isLoading && !error && (
+                <Table>
+                    <TableHeader>
+                        <TableRow className='hover:bg-zinc-800/50 border-b-zinc-700 text-white'>
+                            <TableHead className='w-[50px]'></TableHead>
+                            <TableHead>Full Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Joined At</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {users.map((user) => (
+                            <TableRow key={user._id} className='hover:bg-zinc-800/50 border-b-zinc-800'>
+                                <TableCell>
+                                    <img src={user.imageUrl} alt={user.fullName} className='w-10 h-10 rounded-full object-cover' />
+                                </TableCell>
+                                <TableCell className='font-medium'>{user.fullName}</TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {users.map((user) => (
-                                <TableRow key={user._id} className='hover:bg-zinc-800/50 border-b-zinc-800'>
-                                    <TableCell>
-                                        <img src={user.imageUrl} alt={user.fullName} className='w-10 h-10 rounded-full object-cover' />
-                                    </TableCell>
-                                    <TableCell className='font-medium'>{user.fullName}</TableCell>
-                                    <TableCell>{user.email}</TableCell>
-                                    <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                )}
-            </CardContent>
-        </Card>
+                        ))}
+                    </TableBody>
+                </Table>
+            )}
+        </div>
     );
 };
 
