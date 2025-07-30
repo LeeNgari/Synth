@@ -17,6 +17,8 @@ interface MusicStore {
 	trendingSongs: Song[];
 	likedSongs: Song[];
 	historySongs: Song[];
+	publicPlaylists: Playlist[];
+	userPlaylists: Playlist[];
 	stats: Stats;
 
 	currentPlaylist: Playlist | null;
@@ -32,6 +34,8 @@ interface MusicStore {
 	fetchLikedSongs: () => Promise<void>;
 	fetchHistorySongs: () => Promise<void>;
 	fetchTrendingSongs: () => Promise<void>;
+	fetchPublicPlaylists: () => Promise<void>;
+	fetchUserPlaylists: () => Promise<void>;
 	fetchStats: () => Promise<void>;
 	fetchSongs: () => Promise<void>;
 	deleteSong: (id: string) => Promise<void>;
@@ -51,6 +55,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 	historySongs: [],
 	featuredSongs: [],
 	trendingSongs: [],
+	publicPlaylists: [],
+	userPlaylists: [],
 	stats: {
 		totalSongs: 0,
 		totalAlbums: 0,
@@ -251,6 +257,36 @@ export const useMusicStore = create<MusicStore>((set) => ({
 			});
 
 			set({ trendingSongs: response.data });
+		} catch (error: any) {
+			set({ error: error.response.data.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	fetchPublicPlaylists: async () => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axios.get("http://localhost:5000/api/playlists/public", {
+				withCredentials: true,
+			});
+
+			set({ publicPlaylists: response.data.playlists });
+		} catch (error: any) {
+			set({ error: error.response.data.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	fetchUserPlaylists: async () => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axios.get("http://localhost:5000/api/playlists/me", {
+				withCredentials: true,
+			});
+
+			set({ userPlaylists: response.data.playlists });
 		} catch (error: any) {
 			set({ error: error.response.data.message });
 		} finally {

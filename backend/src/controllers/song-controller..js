@@ -85,7 +85,7 @@ export const getListeningHistory = async (req, res) => {
         let listeningHistory = currentUser.listeningHistory
             .filter(entry => !!entry.song)
             .sort((a, b) => new Date(b.listenedAt) - new Date(a.listenedAt))
-            .slice(0, 6)
+            .slice(0, 8)
             .map(entry => ({
                 ...entry.song,
                 listenedAt: entry.listenedAt,

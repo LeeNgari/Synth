@@ -45,6 +45,8 @@ export interface User {
 	clerkId: string;
 	fullName: string;
 	imageUrl: string;
+	email: string;
+	createdAt: string;
 }
 
 export interface Playlist {
