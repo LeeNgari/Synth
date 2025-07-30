@@ -4,6 +4,8 @@ import LeftSidebar from "./components/LeftSidebar";
 import AiChat from "./components/AiChat";
 import AudioPlayer from "./components/AudioPlayer";
 import { PlaybackControls } from "./components/PlaybackControls";
+import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react"; 
+
 import { useEffect, useState } from "react";
 
 const MainLayout = () => {
@@ -45,11 +47,14 @@ const MainLayout = () => {
         </section>
 
         {/* AiSidebar */}
-        {!isMobile && isFriendsPanelOpen && (
+        <SignedIn>
+          {!isMobile && isFriendsPanelOpen && (
           <div className="absolute right-0 top-0 h-full">
             <AiChat />
           </div>
         )}
+        </SignedIn>
+        
       </main>
 
       {/* Footer */}

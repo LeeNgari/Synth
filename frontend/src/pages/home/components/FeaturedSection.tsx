@@ -12,6 +12,7 @@ const FeaturedSection = () => {
 	return (
 		<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8'>
 			{featuredSongs.map((song) => (
+				console.log("featured", song),
 				<div
 					key={song._id}
 					className='flex items-center bg-[#2e6f57] rounded-md overflow-hidden

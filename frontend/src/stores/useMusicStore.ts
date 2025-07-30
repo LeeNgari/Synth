@@ -15,6 +15,8 @@ interface MusicStore {
 	playlistSongs: Song[];
 	madeForYouSongs: Song[];
 	trendingSongs: Song[];
+	likedSongs: Song[];
+	historySongs: Song[];
 	stats: Stats;
 
 	currentPlaylist: Playlist | null;
@@ -27,6 +29,8 @@ interface MusicStore {
 	fetchFeaturedSongs: () => Promise<void>;
 	fetchSongsByIds: (id: string[]) => Promise<void>;
 	fetchMadeForYouSongs: () => Promise<void>;
+	fetchLikedSongs: () => Promise<void>;
+	fetchHistorySongs: () => Promise<void>;
 	fetchTrendingSongs: () => Promise<void>;
 	fetchStats: () => Promise<void>;
 	fetchSongs: () => Promise<void>;
@@ -43,6 +47,8 @@ export const useMusicStore = create<MusicStore>((set) => ({
 	currentPlaylist: null,
 	madeForYouSongs: [],
 	playlistSongs: [],
+	likedSongs: [],
+	historySongs: [],
 	featuredSongs: [],
 	trendingSongs: [],
 	stats: {
@@ -136,7 +142,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axiosInstance.get("/songs");
-			console.log("Fetched songs:", response.data);
+
 			set({ songs: normalizeSongs(response.data) });
 		} catch (error: any) {
 			set({ error: error.message });
@@ -149,7 +155,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axiosInstance.get("/stats");
-			console.log("Fetched stats:", response.data);
+
 			set({ stats: response.data });
 		} catch (error: any) {
 			set({ error: error.message });
@@ -182,14 +188,40 @@ export const useMusicStore = create<MusicStore>((set) => ({
 			set({ isLoading: false });
 		}
 	},
+	fetchLikedSongs: async () => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axios.get("http://localhost:5000/api/songs/liked", {
+				withCredentials: true,
+			});
 
-	fetchFeaturedSongs: async () => {
+			set({ likedSongs: response.data });
+		} catch (error: any) {
+			set({ error: error.response.data.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+	fetchHistorySongs: async () => {
 		set({ isLoading: true, error: null });
 		try {
 			const response = await axios.get("http://localhost:5000/api/songs/history", {
 				withCredentials: true,
 			});
-			console.log("history", response.data);
+
+			set({ historySongs: response.data });
+		} catch (error: any) {
+			set({ error: error.response.data.message });
+		} finally {
+			set({ isLoading: false });
+		}
+	},
+
+	fetchFeaturedSongs: async () => {
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axios.get("http://localhost:5000/api/songs/featured");
+			console.log("featured", response.data);
 			set({ featuredSongs: response.data });
 		} catch (error: any) {
 			set({ error: error.response.data.message });
@@ -201,7 +233,7 @@ export const useMusicStore = create<MusicStore>((set) => ({
 	fetchMadeForYouSongs: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axiosInstance.get("http://localhost:5000/api/songs/popular");
+			const response = await axiosInstance.get("http://localhost:5000/api/songs/made-for-you");
 
 			set({ madeForYouSongs: response.data });
 		} catch (error: any) {
@@ -214,10 +246,9 @@ export const useMusicStore = create<MusicStore>((set) => ({
 	fetchTrendingSongs: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			const response = await axios.get("http://localhost:5000/api/songs/liked", {
+			const response = await axios.get("http://localhost:5000/api/songs/trending", {
 				withCredentials: true,
 			});
-			console.log("liked", response.data);
 
 			set({ trendingSongs: response.data });
 		} catch (error: any) {

@@ -108,7 +108,7 @@ export default function AiChat() {
 	const currentMessages = activeTab === "music" ? messages : chatHistory;
 
 	return (
-		<div className='w-[400px] rounded-lg h-full bg-zinc-800/40 text-white flex flex-col absolute right-0 z-40 shadow-xl animate-fade-in border-l border-zinc-600/30 backdrop-blur-sm'>
+		<div className='w-[400px]  rounded-lg h-full bg-zinc-800/40 text-white flex flex-col absolute right-0 z-40 shadow-xl animate-fade-in border-l border-zinc-600/30 backdrop-blur-sm'>
 			{/* Header */}
 			<div className='p-6 border-b border-zinc-600/30 bg-gradient-to-r from-[#2e6f57]/40 to-transparent'>
 				<h2 className='text-2xl font-bold flex items-center gap-2'>

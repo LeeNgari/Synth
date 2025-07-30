@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { usePlayerStore } from "@/stores/usePlayerStore";
+import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import {
 	Laptop2,
 	ListMusic,
@@ -46,7 +47,7 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 	const [duration, setDuration] = useState(0);
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 
-	
+
 	useEffect(() => {
 		audioRef.current = document.querySelector("audio");
 
@@ -180,8 +181,8 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 
 				{/* volume controls */}
 				<div className='hidden sm:flex items-center gap-4 min-w-[180px] w-[30%] justify-end text-white'>
-					
-					
+
+
 
 					<div className='flex items-center gap-2'>
 						<Button size='icon' variant='ghost' className='text-white hover:text-black hover:bg-white'>
@@ -201,9 +202,12 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 							}}
 						/>
 					</div>
-					<AiButton
+					<SignedIn>
+						<AiButton
 						toggleFriendsPanel={toggleFriendsPanel}
 						isActive={isFriendsPanelOpen} />
+					</SignedIn>
+
 				</div>
 			</div>
 		</footer>
