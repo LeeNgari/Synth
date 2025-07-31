@@ -100,26 +100,29 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 								</div>
 							</div>
 							{/* Like / Dislike Buttons */}
-							<div className='flex gap-2 ml-2'>
-								<Button
-									size='icon'
-									variant='ghost'
-									className={`hover:bg-white ${currentSong.likedByCurrentUser ? "text-green-400" : "text-white"
-										}`}
-									onClick={() => likeSong(currentSong._id)}
-								>
-									<ThumbsUp className='h-4 w-4' />
-								</Button>
-								<Button
-									size='icon'
-									variant='ghost'
-									className={`hover:bg-white ${currentSong.dislikedByCurrentUser ? "text-red-400" : "text-white"
-										}`}
-									onClick={() => dislikeSong(currentSong._id)}
-								>
-									<ThumbsDown className='h-4 w-4' />
-								</Button>
-							</div>
+							<SignedIn>
+								<div className='flex gap-2 ml-2'>
+									<Button
+										size='icon'
+										variant='ghost'
+										className={`hover:bg-white ${currentSong.likedByCurrentUser ? "text-green-400" : "text-white"
+											}`}
+										onClick={() => likeSong(currentSong._id)}
+									>
+										<ThumbsUp className='h-4 w-4' />
+									</Button>
+									<Button
+										size='icon'
+										variant='ghost'
+										className={`hover:bg-white ${currentSong.dislikedByCurrentUser ? "text-red-400" : "text-white"
+											}`}
+										onClick={() => dislikeSong(currentSong._id)}
+									>
+										<ThumbsDown className='h-4 w-4' />
+									</Button>
+								</div>
+							</SignedIn>
+
 						</>
 					)}
 				</div>
@@ -204,8 +207,8 @@ export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: Pla
 					</div>
 					<SignedIn>
 						<AiButton
-						toggleFriendsPanel={toggleFriendsPanel}
-						isActive={isFriendsPanelOpen} />
+							toggleFriendsPanel={toggleFriendsPanel}
+							isActive={isFriendsPanelOpen} />
 					</SignedIn>
 
 				</div>

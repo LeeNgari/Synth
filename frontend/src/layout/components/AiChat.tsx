@@ -62,9 +62,10 @@ export default function AiChat() {
 				};
 				setMessages((prev) => [...prev, aiMessage]);
 			} else {
+				const historyToSend = [...chatHistory, userMessage]
 				const res = await axios.post<{ response: string }>(
 					"http://localhost:5000/api/gemini/chat",
-					{ prompt },
+					{ prompt, history: historyToSend },
 					{ withCredentials: true }
 				);
 
@@ -132,11 +133,10 @@ export default function AiChat() {
 				{currentMessages.map((message, idx) => (
 					<div key={idx} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
 						<div
-							className={`relative px-4 py-3 rounded-2xl text-sm max-w-[90%] shadow-md ${
-								message.role === "user"
+							className={`relative px-4 py-3 rounded-2xl text-sm max-w-[90%] shadow-md ${message.role === "user"
 									? "bg-[#2e6f57] text-white"
 									: "bg-zinc-700/80 border border-zinc-600/30"
-							}`}
+								}`}
 						>
 							{message.role === "user" ? (
 								<User className='absolute -left-7 top-2 text-[#4fd1a5]' size={18} />
@@ -192,11 +192,10 @@ export default function AiChat() {
 							<button
 								key={i}
 								onClick={() => handleSendMessage(prompt)}
-								className={`px-2 py-1 text-xs rounded-md transition-colors ${
-									i === 0
+								className={`px-2 py-1 text-xs rounded-md transition-colors ${i === 0
 										? "bg-zinc-600 text-white"
 										: "bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
-								}`}
+									}`}
 							>
 								{prompt}
 							</button>
@@ -211,8 +210,8 @@ export default function AiChat() {
 					<button
 						onClick={() => setActiveTab('music')}
 						className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg shadow transition-all border ${activeTab === 'music'
-								? 'bg-[#2e6f57] border-[#4fd1a5]/50 text-white'
-								: 'bg-zinc-700 hover:bg-zinc-600/80 border-zinc-600/30 text-zinc-300'
+							? 'bg-[#2e6f57] border-[#4fd1a5]/50 text-white'
+							: 'bg-zinc-700 hover:bg-zinc-600/80 border-zinc-600/30 text-zinc-300'
 							}`}
 					>
 						<Music size={16} />
@@ -221,8 +220,8 @@ export default function AiChat() {
 					<button
 						onClick={() => setActiveTab('chat')}
 						className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg shadow transition-all border ${activeTab === 'chat'
-								? 'bg-[#2e6f57] border-[#4fd1a5]/50 text-white'
-								: 'bg-zinc-700 hover:bg-zinc-600/80 border-zinc-600/30 text-zinc-300'
+							? 'bg-[#2e6f57] border-[#4fd1a5]/50 text-white'
+							: 'bg-zinc-700 hover:bg-zinc-600/80 border-zinc-600/30 text-zinc-300'
 							}`}
 					>
 						<MessageSquare size={16} />

@@ -10,7 +10,7 @@ import AdminSidebar from "./components/AdminSidebar";
 
 const AdminPage = () => {
     const { isAdmin, isLoading } = useAuthStore();
-    const [activeView, setActiveView] = useState("dashboard");
+    const [activeView, setActiveView] = useState("songs");
 
     const { fetchAlbums, fetchSongs, fetchStats } = useMusicStore();
 
@@ -24,8 +24,6 @@ const AdminPage = () => {
 
     const renderContent = () => {
         switch (activeView) {
-            case "dashboard":
-                return <DashboardStats />;
             case "songs":
                 return <SongsTabContent />;
             case "albums":
@@ -40,7 +38,7 @@ const AdminPage = () => {
     };
 
     return (
-        <div className='min-h-screen bg-[#2e6f57] text-white flex'>
+        <div className='min-h-screen bg-[#2e6f57] text-white'>
             <AdminSidebar activeView={activeView} setView={setActiveView} />
             <main className="flex-1 p-8">
                 {renderContent()}
