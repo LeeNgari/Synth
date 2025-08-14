@@ -1,8 +1,9 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { axiosInstance } from "@/lib/axios";
 import { User } from "@/types";
-import { Users } from "lucide-react";
+import { Users, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import toast from "react-hot-toast";
 
 const UsersTabContent = () => {
     const [users, setUsers] = useState<User[]>([]);
@@ -14,9 +15,7 @@ const UsersTabContent = () => {
             setIsLoading(true);
             setError(null);
             try {
-                const res = await axios.get("http://localhost:5000/api/users", {
-                    withCredentials: true
-                });
+                const res = await axiosInstance.get("/users");
                 setUsers(res.data);
             } catch (err) {
                 setError("Failed to fetch users.");
@@ -29,6 +28,22 @@ const UsersTabContent = () => {
         fetchUsers();
     }, []);
 
+    const handleRoleChange = async (userId: string, newRole: 'user' | 'admin') => {
+        const originalUsers = [...users];
+        // Optimistically update the UI
+        setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
+
+        try {
+            await axiosInstance.put(`/admin/users/${userId}/role`, { role: newRole });
+            toast.success("User role updated successfully!");
+        } catch (error) {
+            // Revert the UI on error
+            setUsers(originalUsers);
+            toast.error("Failed to update user role.");
+            console.error(error);
+        }
+    };
+
     return (
         <div>
             <div className='flex items-center justify-between mb-6'>
@@ -37,7 +52,7 @@ const UsersTabContent = () => {
                         <Users className='text-white' />
                         User Management
                     </h2>
-                    <p className="text-white">View and manage users</p>
+                    <p className="text-white">View and manage user roles</p>
                 </div>
             </div>
             {isLoading && <p>Loading users...</p>}
@@ -48,7 +63,7 @@ const UsersTabContent = () => {
                         <TableRow className='hover:bg-zinc-800/50 border-b-zinc-700 text-white'>
                             <TableHead className='w-[50px]'></TableHead>
                             <TableHead>Full Name</TableHead>
-                            <TableHead>Email</TableHead>
+                            <TableHead>Role</TableHead>
                             <TableHead>Joined At</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -58,8 +73,20 @@ const UsersTabContent = () => {
                                 <TableCell>
                                     <img src={user.imageUrl} alt={user.fullName} className='w-10 h-10 rounded-full object-cover' />
                                 </TableCell>
-                                <TableCell className='font-medium'>{user.fullName}</TableCell>
-                                <TableCell>{user.email}</TableCell>
+                                <TableCell className='font-medium flex items-center gap-2'>
+                                    {user.fullName}
+                                    {user.role === 'admin' && <ShieldCheck className="size-4 text-green-500" />}
+                                </TableCell>
+                                <TableCell>
+                                    <select
+                                        value={user.role}
+                                        onChange={(e) => handleRoleChange(user._id, e.target.value as 'user' | 'admin')}
+                                        className="bg-zinc-800 text-white border border-zinc-700 rounded-md p-2"
+                                    >
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </TableCell>
                                 <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                             </TableRow>
                         ))}

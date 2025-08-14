@@ -47,8 +47,7 @@ const HomePage = () => {
 			fetchTrendingSongs(); // Assuming this is user-specific, or remove if public
 			fetchPublicPlaylists();
 			fetchUserPlaylists();
-		} else {
-		}
+		} 
 	}, [isSignedIn, fetchLikedSongs, fetchHistorySongs, fetchMadeForYouSongs, fetchTrendingSongs, fetchPublicPlaylists, fetchUserPlaylists]);
 
 

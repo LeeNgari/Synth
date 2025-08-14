@@ -3,216 +3,275 @@ import { Slider } from "@/components/ui/slider";
 import { usePlayerStore } from "@/stores/usePlayerStore";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import {
-	Laptop2,
-	ListMusic,
-	Mic2,
-	Pause,
-	Play,
-	Repeat,
-	Shuffle,
-	SkipBack,
-	SkipForward,
-	Volume1,
-	ThumbsUp,
-	ThumbsDown,
+  Laptop2,
+  ListMusic,
+  Mic2,
+  Pause,
+  Play,
+  Repeat,
+  Shuffle,
+  SkipBack,
+  SkipForward,
+  Volume1,
+  ThumbsUp,
+  ThumbsDown,
+  Download,
 } from "lucide-react";
-import AiButton from "./AiButton"
+import AiButton from "./AiButton";
+import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
 const formatTime = (seconds: number) => {
-	const minutes = Math.floor(seconds / 60);
-	const remainingSeconds = Math.floor(seconds % 60);
-	return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
 interface PlaybackControlsProps {
-	toggleFriendsPanel: () => void;
-	isFriendsPanelOpen: boolean;
+  toggleFriendsPanel: () => void;
+  isFriendsPanelOpen: boolean;
 }
 
+export const PlaybackControls = ({
+  toggleFriendsPanel,
+  isFriendsPanelOpen,
+}: PlaybackControlsProps) => {
+  const {
+    currentSong,
+    isPlaying,
+    togglePlay,
+    playNext,
+    playPrevious,
+    likeSong,
+    dislikeSong,
+  } = usePlayerStore();
 
+  const [volume, setVolume] = useState(75);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-export const PlaybackControls = ({ toggleFriendsPanel, isFriendsPanelOpen }: PlaybackControlsProps) => {
-	const {
-		currentSong,
-		isPlaying,
-		togglePlay,
-		playNext,
-		playPrevious,
-		likeSong,
-		dislikeSong,
-	} = usePlayerStore();
+  useEffect(() => {
+    audioRef.current = document.querySelector("audio");
 
-	const [volume, setVolume] = useState(75);
-	const [currentTime, setCurrentTime] = useState(0);
-	const [duration, setDuration] = useState(0);
-	const audioRef = useRef<HTMLAudioElement | null>(null);
+    const audio = audioRef.current;
+    if (!audio) return;
 
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
 
-	useEffect(() => {
-		audioRef.current = document.querySelector("audio");
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("loadedmetadata", updateDuration);
 
-		const audio = audioRef.current;
-		if (!audio) return;
+    const handleEnded = () => {
+      usePlayerStore.setState({ isPlaying: false });
+    };
 
-		const updateTime = () => setCurrentTime(audio.currentTime);
-		const updateDuration = () => setDuration(audio.duration);
+    audio.addEventListener("ended", handleEnded);
 
-		audio.addEventListener("timeupdate", updateTime);
-		audio.addEventListener("loadedmetadata", updateDuration);
+    return () => {
+      audio.removeEventListener("timeupdate", updateTime);
+      audio.removeEventListener("loadedmetadata", updateDuration);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [currentSong]);
 
-		const handleEnded = () => {
-			usePlayerStore.setState({ isPlaying: false });
-		};
+  const handleDownload = async () => {
+    if (!currentSong) {
+      toast.error("No song is currently playing.");
+      return;
+    }
 
-		audio.addEventListener("ended", handleEnded);
+    toast.loading("Starting download...");
 
-		return () => {
-			audio.removeEventListener("timeupdate", updateTime);
-			audio.removeEventListener("loadedmetadata", updateDuration);
-			audio.removeEventListener("ended", handleEnded);
-		};
-	}, [currentSong]);
+    try {
+      const response = await fetch(currentSong.audioUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch the song. Status: ${response.status}`);
+      }
+      const blob = await response.blob();
 
-	const handleSeek = (value: number[]) => {
-		if (audioRef.current) {
-			audioRef.current.currentTime = value[0];
-		}
-	};
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
 
-	return (
-		<footer className='h-20 sm:h-24 bg-[#2e6f57] px-4'>
-			<div className='flex justify-between items-center h-full max-w-[1800px] mx-auto'>
-				{/* currently playing song */}
-				<div className='hidden sm:flex items-center gap-4 min-w-[180px] w-[30%] text-white'>
-					{currentSong && (
-						<>
-							<img
-								src={currentSong.imageUrl}
-								alt={currentSong.title}
-								className='w-14 h-14 object-cover rounded-md'
-							/>
-							<div className='flex-1 min-w-0'>
-								<div className='font-medium truncate hover:underline cursor-pointer'>
-									{currentSong.title}
-								</div>
-								<div className='text-sm text-white/70 truncate hover:underline cursor-pointer'>
-									{currentSong.artist}
-								</div>
-							</div>
-							{/* Like / Dislike Buttons */}
-							<SignedIn>
-								<div className='flex gap-2 ml-2'>
-									<Button
-										size='icon'
-										variant='ghost'
-										className={`hover:bg-white ${currentSong.likedByCurrentUser ? "text-green-400" : "text-white"
-											}`}
-										onClick={() => likeSong(currentSong._id)}
-									>
-										<ThumbsUp className='h-4 w-4' />
-									</Button>
-									<Button
-										size='icon'
-										variant='ghost'
-										className={`hover:bg-white ${currentSong.dislikedByCurrentUser ? "text-red-400" : "text-white"
-											}`}
-										onClick={() => dislikeSong(currentSong._id)}
-									>
-										<ThumbsDown className='h-4 w-4' />
-									</Button>
-								</div>
-							</SignedIn>
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      // Format the filename
+      a.download = `${currentSong.artist} - ${currentSong.title}.mp3`;
+      document.body.appendChild(a);
+      a.click();
 
-						</>
-					)}
-				</div>
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-				{/* player controls*/}
-				<div className='flex flex-col items-center gap-2 flex-1 max-w-full sm:max-w-[45%]'>
-					<div className='flex items-center gap-4 sm:gap-6'>
-						<Button
-							size='icon'
-							variant='ghost'
-							className='hidden sm:inline-flex text-white hover:text-black hover:bg-white'
-						>
-							<Shuffle className='h-4 w-4' />
-						</Button>
+      toast.dismiss();
+      toast.success("Download started!");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.dismiss();
+      toast.error("Download failed. Please try again.");
+    }
+  };
+  const handleSeek = (value: number[]) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = value[0];
+    }
+  };
 
-						<Button
-							size='icon'
-							variant='ghost'
-							className='text-white hover:text-black hover:bg-white'
-							onClick={playPrevious}
-							disabled={!currentSong}
-						>
-							<SkipBack className='h-4 w-4' />
-						</Button>
+  return (
+    <footer className="h-20 sm:h-24 bg-[#2e6f57] px-4">
+      <div className="flex justify-between items-center h-full max-w-[1800px] mx-auto">
+        {/* currently playing song */}
+        <div className="hidden sm:flex items-center gap-4 min-w-[180px] w-[30%] text-white">
+          {currentSong && (
+            <>
+              <img
+                src={currentSong.imageUrl}
+                alt={currentSong.title}
+                className="w-14 h-14 object-cover rounded-md"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium truncate hover:underline cursor-pointer">
+                  {currentSong.title}
+                </div>
+                <div className="text-sm text-white/70 truncate hover:underline cursor-pointer">
+                  {currentSong.artist}
+                </div>
+              </div>
+              {/* Like / Dislike Buttons */}
+              <SignedIn>
+                <div className="flex gap-2 ml-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className={`hover:bg-white ${
+                      currentSong.likedByCurrentUser
+                        ? "text-green-400"
+                        : "text-white"
+                    }`}
+                    onClick={() => likeSong(currentSong._id)}
+                  >
+                    <ThumbsUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className={`hover:bg-white ${
+                      currentSong.dislikedByCurrentUser
+                        ? "text-red-400"
+                        : "text-white"
+                    }`}
+                    onClick={() => dislikeSong(currentSong._id)}
+                  >
+                    <ThumbsDown className="h-4 w-4" />
+                  </Button>
+                </div>
+              </SignedIn>
+            </>
+          )}
+        </div>
 
-						<Button
-							size='icon'
-							className='bg-white hover:bg-[#2e6f57] hover:text-white text-[#2e6f57] rounded-full h-8 w-8'
-							onClick={togglePlay}
-							disabled={!currentSong}
-						>
-							{isPlaying ? <Pause className='h-5 w-5' /> : <Play className='h-5 w-5' />}
-						</Button>
+        {/* player controls*/}
+        <div className="flex flex-col items-center gap-2 flex-1 max-w-full sm:max-w-[45%]">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="hidden sm:inline-flex text-white hover:text-black hover:bg-white"
+            >
+              <Shuffle className="h-4 w-4" />
+            </Button>
 
-						<Button
-							size='icon'
-							variant='ghost'
-							className='text-white hover:text-black hover:bg-white'
-							onClick={playNext}
-							disabled={!currentSong}
-						>
-							<SkipForward className='h-4 w-4' />
-						</Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-white hover:text-black hover:bg-white"
+              onClick={playPrevious}
+              disabled={!currentSong}
+            >
+              <SkipBack className="h-4 w-4" />
+            </Button>
 
-					</div>
+            <Button
+              size="icon"
+              className="bg-white hover:bg-[#2e6f57] hover:text-white text-[#2e6f57] rounded-full h-8 w-8"
+              onClick={togglePlay}
+              disabled={!currentSong}
+            >
+              {isPlaying ? (
+                <Pause className="h-5 w-5" />
+              ) : (
+                <Play className="h-5 w-5" />
+              )}
+            </Button>
 
-					<div className='hidden sm:flex items-center gap-2 w-full'>
-						<div className='text-xs text-white'>{formatTime(currentTime)}</div>
-						<Slider
-							value={[currentTime]}
-							max={duration || 100}
-							step={1}
-							className='w-full hover:cursor-grab active:cursor-grabbing'
-							onValueChange={handleSeek}
-						/>
-						<div className='text-xs text-white/70'>{formatTime(duration)}</div>
-					</div>
-				</div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-white hover:text-black hover:bg-white"
+              onClick={playNext}
+              disabled={!currentSong}
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
+          </div>
 
-				{/* volume controls */}
-				<div className='hidden sm:flex items-center gap-4 min-w-[180px] w-[30%] justify-end text-white'>
+          <div className="hidden sm:flex items-center gap-2 w-full">
+            <div className="text-xs text-white">{formatTime(currentTime)}</div>
+            <Slider
+              value={[currentTime]}
+              max={duration || 100}
+              step={1}
+              className="w-full hover:cursor-grab active:cursor-grabbing"
+              onValueChange={handleSeek}
+            />
+            <div className="text-xs text-white/70">{formatTime(duration)}</div>
+          </div>
+        </div>
 
+        {/* volume controls */}
+        <div className="hidden sm:flex items-center gap-4 min-w-[180px] w-[30%] justify-end text-white">
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-white hover:text-black hover:bg-white"
+            >
+              <Volume1 className="h-4 w-4" />
+            </Button>
 
-
-					<div className='flex items-center gap-2'>
-						<Button size='icon' variant='ghost' className='text-white hover:text-black hover:bg-white'>
-							<Volume1 className='h-4 w-4' />
-						</Button>
-
-						<Slider
-							value={[volume]}
-							max={100}
-							step={1}
-							className='w-24 hover:cursor-grab active:cursor-grabbing'
-							onValueChange={(value) => {
-								setVolume(value[0]);
-								if (audioRef.current) {
-									audioRef.current.volume = value[0] / 100;
-								}
-							}}
-						/>
-					</div>
-					<SignedIn>
-						<AiButton
-							toggleFriendsPanel={toggleFriendsPanel}
-							isActive={isFriendsPanelOpen} />
-					</SignedIn>
-
-				</div>
-			</div>
-		</footer>
-	);
+            <Slider
+              value={[volume]}
+              max={100}
+              step={1}
+              className="w-24 hover:cursor-grab active:cursor-grabbing"
+              onValueChange={(value) => {
+                setVolume(value[0]);
+                if (audioRef.current) {
+                  audioRef.current.volume = value[0] / 100;
+                }
+              }}
+            />
+          </div>
+          <SignedIn>
+            <button
+              onClick={handleDownload}
+              className="p-2 rounded-full hover:bg-zinc-700 transition-colors"
+              title="Download Song"
+            >
+              <Download className="size-6" />
+            </button>
+          </SignedIn>
+          <SignedIn>
+            <AiButton
+              toggleFriendsPanel={toggleFriendsPanel}
+              isActive={isFriendsPanelOpen}
+            />
+          </SignedIn>
+        </div>
+      </div>
+    </footer>
+  );
 };

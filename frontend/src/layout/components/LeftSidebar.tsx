@@ -1,13 +1,12 @@
-import { SignedIn, useUser } from "@clerk/clerk-react";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { SignedIn } from "@clerk/clerk-react";
 import { HomeIcon, Library, SearchIcon, ShieldCheck } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const LeftSidebar = () => {
 	const location = useLocation();
-	const { user } = useUser();
-
-	const isAdmin = user?.primaryEmailAddress?.emailAddress === "leengari76@gmail.com";
+	const { isAdmin } = useAuthStore();
 
 	return (
 		<div className="h-full w-27 flex flex-col p-7">

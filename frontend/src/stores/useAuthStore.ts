@@ -1,33 +1,44 @@
 import { axiosInstance } from "@/lib/axios";
 import { create } from "zustand";
 
-interface AuthStore {
-	isAdmin: boolean;
-	isLoading: boolean;
-	error: string | null;
-
-	checkAdminStatus: () => Promise<void>;
-	reset: () => void;
+// Define the User type based on your backend model
+interface User {
+  _id: string;
+  clerkId: string;
+  fullName: string;
+  imageUrl: string;
+  role: 'user' | 'admin';
+  // Add other fields from your user model if needed
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
-	isAdmin: false,
-	isLoading: false,
-	error: null,
+interface AuthStore {
+  user: User | null;
+  isAdmin: boolean;
+  isLoading: boolean;
+  error: string | null;
 
-	checkAdminStatus: async () => {
-		set({ isLoading: true, error: null });
-		try {
-			const response = await axiosInstance.get("/admin/check");
-			set({ isAdmin: response.data.admin });
-		} catch (error: any) {
-			set({ isAdmin: false, error: error.response.data.message });
-		} finally {
-			set({ isLoading: false });
-		}
-	},
+  fetchUser: () => Promise<void>;
+  reset: () => void;
+}
 
-	reset: () => {
-		set({ isAdmin: false, isLoading: false, error: null });
-	},
+export const useAuthStore = create<AuthStore>((set, get) => ({
+  user: null,
+  isAdmin: false,
+  isLoading: false,
+  error: null,
+
+  fetchUser: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axiosInstance.get<User>("/auth/me");
+      const user = response.data;
+      set({ user: user, isAdmin: user.role === 'admin', isLoading: false });
+    } catch (error: any) {
+      set({ user: null, isAdmin: false, error: error.response?.data?.message || "An error occurred", isLoading: false });
+    }
+  },
+
+  reset: () => {
+    set({ user: null, isAdmin: false, isLoading: false, error: null });
+  },
 }));

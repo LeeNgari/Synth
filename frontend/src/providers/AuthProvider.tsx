@@ -12,7 +12,7 @@ const updateApiToken = (token: string | null) => {
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { getToken, userId } = useAuth();
   const [loading, setLoading] = useState(true);
-  const { checkAdminStatus } = useAuthStore();
+  const { fetchUser } = useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -20,7 +20,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const token = await getToken();
         updateApiToken(token);
         if (token) {
-          await checkAdminStatus();
+          await fetchUser();
         }
       } catch (error: any) {
         updateApiToken(null);
@@ -31,7 +31,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     initAuth();
-  }, [getToken, userId, checkAdminStatus]);
+  }, [getToken, userId, fetchUser]);
 
   if (loading)
     return (
