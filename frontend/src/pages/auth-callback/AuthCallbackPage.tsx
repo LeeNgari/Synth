@@ -4,6 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { Loader } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const AuthCallbackPage = () => {
 	const { isLoaded, user } = useUser();
@@ -14,12 +15,8 @@ const AuthCallbackPage = () => {
 		console.log("Initial state", { isLoaded, user, syncAttempted: syncAttempted.current });
 
 		const syncUser = async () => {
-			if (!isLoaded) {
-				console.log("Clerk not loaded yet");
-				return;
-			}
-			if (!user) {
-				console.log("No user found");
+			if (!isLoaded || !user) {
+				console.log("Clerk not loaded or no user found yet");
 				return;
 			}
 			if (syncAttempted.current) {
@@ -40,11 +37,14 @@ const AuthCallbackPage = () => {
 					withCredentials: true // Important for sessions
 				});
 				console.log("Sync response:", response.data);
-			} catch (error) {
-				console.error("Sync failed:", error);
-			} finally {
+				// Only navigate on successful sync
 				navigate("/");
-			}
+			} catch (error: any) {
+				console.error("Sync failed:", error);
+				toast.error(error.response?.data?.message || "Failed to log in. Please try again.");
+				// Navigate to home or an error page even on failure, but after showing toast
+				navigate("/"); 
+			} 
 		};
 
 		syncUser();

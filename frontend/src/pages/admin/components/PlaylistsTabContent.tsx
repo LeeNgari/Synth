@@ -1,3 +1,4 @@
+
 import { ListMusic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +19,8 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const PlaylistsTabContent = () => {
   const { fetchSongs, songs, albums } = useMusicStore();
@@ -24,10 +28,17 @@ const PlaylistsTabContent = () => {
   const [playlistTitle, setPlaylistTitle] = useState("");
   const [playlistDescription, setPlaylistDescription] = useState("");
   const [selectedSongs, setSelectedSongs] = useState<string[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [currentPlaylistToEdit, setCurrentPlaylistToEdit] = useState<any>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editSelectedSongs, setEditSelectedSongs] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchSongs();
+    fetchSongs(); // Fetch all songs for selection
     fetchPlaylists();
   }, []);
 
@@ -44,11 +55,18 @@ const PlaylistsTabContent = () => {
       }
     } catch (err) {
       console.error(err);
+      toast.error("Failed to fetch public playlists.");
     }
   };
 
   const toggleSong = (id: string) => {
     setSelectedSongs((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    );
+  };
+
+  const toggleEditSong = (id: string) => {
+    setEditSelectedSongs((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
     );
   };
@@ -78,7 +96,7 @@ const PlaylistsTabContent = () => {
         setPlaylistTitle("");
         setPlaylistDescription("");
         setSelectedSongs([]);
-        setShowModal(false);
+        setShowCreateModal(false);
         fetchPlaylists();
       } else {
         toast.error(res.data.message || "Something went wrong.");
@@ -86,6 +104,54 @@ const PlaylistsTabContent = () => {
     } catch (err) {
       console.error(err);
       toast.error("Failed to create playlist.");
+    }
+  };
+
+  const handleEditClick = (playlist: any) => {
+    setCurrentPlaylistToEdit(playlist);
+    setEditTitle(playlist.title);
+    setEditDescription(playlist.description || "");
+    setEditSelectedSongs(playlist.songs.map((s: any) => s._id)); // Initialize with current songs
+    setShowEditDialog(true);
+  };
+
+  const handleUpdatePlaylist = async () => {
+    if (!currentPlaylistToEdit || !editTitle.trim()) {
+      toast.error("Title cannot be empty.");
+      return;
+    }
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/playlists/${currentPlaylistToEdit._id}`,
+        { title: editTitle, description: editDescription, songIds: editSelectedSongs },
+        { withCredentials: true }
+      );
+      if (response.data.success) {
+        toast.success("Playlist updated!");
+        fetchPlaylists(); // Refresh data
+        setShowEditDialog(false);
+      }
+    } catch (error) {
+      toast.error("Failed to update playlist.");
+      console.error(error);
+    }
+  };
+
+  const handleDeletePlaylist = async () => {
+    if (!currentPlaylistToEdit) return;
+    try {
+      const response = await axios.delete(
+        `http://localhost:5000/api/playlists/${currentPlaylistToEdit._id}`,
+        { withCredentials: true }
+      );
+      if (response.data.success) {
+        toast.success("Playlist deleted.");
+        fetchPlaylists(); // Refresh data
+        setShowDeleteDialog(false);
+      }
+    } catch (error) {
+      toast.error("Failed to delete playlist.");
+      console.error(error);
     }
   };
 
@@ -112,7 +178,7 @@ const PlaylistsTabContent = () => {
           </h2>
           <p className="text-white">Manage public playlists</p>
         </div>
-        <Dialog open={showModal} onOpenChange={setShowModal}>
+        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
           <DialogTrigger asChild>
             <Button className="bg-white text-black hover:bg-black hover:text-white rounded-full px-6 py-3 text-lg font-semibold transition-colors">
               Create Playlist
@@ -139,7 +205,7 @@ const PlaylistsTabContent = () => {
                   id="title"
                   value={playlistTitle}
                   onChange={(e) => setPlaylistTitle(e.target.value)}
-                  placeholder="E.g. Gym Mix"
+                  placeholder="E.g. Gym Mix" 
                   className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500 focus:border-green-500 focus:ring-green-500 rounded-lg"
                 />
               </div>
@@ -241,9 +307,90 @@ const PlaylistsTabContent = () => {
                 {playlist.songs.length} song{playlist.songs.length !== 1 && "s"}
               </p>
             </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-2 right-2 text-white/50 hover:text-white"
+                >
+                  <MoreVertical className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-zinc-800 border-zinc-700 text-white">
+                <DropdownMenuItem
+                  onSelect={() => handleEditClick(playlist)}
+                  className="hover:bg-zinc-700 cursor-pointer flex items-center gap-2"
+                >
+                  <Pencil className="size-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setCurrentPlaylistToEdit(playlist);
+                    setShowDeleteDialog(true);
+                  }}
+                  className="hover:bg-zinc-700 cursor-pointer flex items-center gap-2 text-red-500 hover:text-red-400"
+                >
+                  <Trash2 className="size-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ))}
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Edit Playlist</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              id="editTitle"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              placeholder="Playlist Title"
+              className="bg-zinc-800 border-zinc-700"
+            />
+            <Textarea
+              id="editDescription"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              placeholder="Description"
+              className="bg-zinc-800 border-zinc-700"
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowEditDialog(false)} variant="ghost">
+              Cancel
+            </Button>
+            <Button onClick={handleUpdatePlaylist} className="bg-green-600 hover:bg-green-700">
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Delete Playlist</DialogTitle>
+          </DialogHeader>
+          <p>
+            Are you sure you want to delete "{currentPlaylistToEdit?.title}"? This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button onClick={() => setShowDeleteDialog(false)} variant="ghost">
+              Cancel
+            </Button>
+            <Button onClick={handleDeletePlaylist} variant="destructive">
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

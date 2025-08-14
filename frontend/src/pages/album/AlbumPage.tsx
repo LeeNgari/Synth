@@ -1,9 +1,18 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMusicStore } from "@/stores/useMusicStore";
 import { usePlayerStore } from "@/stores/usePlayerStore";
-import { Clock, Pause, Play } from "lucide-react";
-import { useEffect } from "react";
+import { Clock, Pause, Play, MoreVertical } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuthStore } from "@/stores/useAuthStore";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { Song as SongType, Playlist as PlaylistType } from "@/types";
 
 export const formatDuration = (seconds: number) => {
 	const minutes = Math.floor(seconds / 60);
@@ -15,12 +24,34 @@ const AlbumPage = () => {
 	const { albumId } = useParams();
 	const { fetchAlbumById, currentAlbum, isLoading } = useMusicStore();
 	const { currentSong, isPlaying, playAlbum, togglePlay } = usePlayerStore();
+	const { user: currentUser } = useAuthStore();
+
+	const [showAddToPlaylistDialog, setShowAddToPlaylistDialog] = useState(false);
+	const [selectedSongToAdd, setSelectedSongToAdd] = useState<SongType | null>(null);
+	const [userPlaylists, setUserPlaylists] = useState<PlaylistType[]>([]);
+	const [selectedPlaylistsForSong, setSelectedPlaylistsForSong] = useState<string[]>([]);
 
 	useEffect(() => {
 		if (albumId) fetchAlbumById(albumId);
 	}, [fetchAlbumById, albumId]);
 
-	if (isLoading) return null;
+	useEffect(() => {
+		const fetchUserPlaylists = async () => {
+			if (!currentUser) return;
+			try {
+				const res = await axios.get("http://localhost:5000/api/playlists/me", { withCredentials: true });
+				if (res.data.success) {
+					setUserPlaylists(res.data.playlists);
+				}
+			} catch (err) {
+				console.error("Failed to fetch user playlists:", err);
+				toast.error("Failed to load your playlists.");
+			}
+		};
+		fetchUserPlaylists();
+	}, [currentUser]);
+
+	if (isLoading || !currentAlbum) return null; // Handle loading and no album found
 
 	const handlePlayAlbum = () => {
 		if (!currentAlbum) return;
@@ -28,7 +59,6 @@ const AlbumPage = () => {
 		const isCurrentAlbumPlaying = currentAlbum?.songs.some((song) => song._id === currentSong?._id);
 		if (isCurrentAlbumPlaying) togglePlay();
 		else {
-			// start playing the album from the beginning
 			playAlbum(currentAlbum?.songs, 0);
 		}
 	};
@@ -37,6 +67,54 @@ const AlbumPage = () => {
 		if (!currentAlbum) return;
 
 		playAlbum(currentAlbum?.songs, index);
+	};
+
+	const handleAddToPlaylistClick = (song: SongType) => {
+		setSelectedSongToAdd(song);
+		setSelectedPlaylistsForSong([]); // Clear previous selections
+		setShowAddToPlaylistDialog(true);
+	};
+
+	const handleTogglePlaylistSelection = (playlistId: string) => {
+		setSelectedPlaylistsForSong(prev =>
+			prev.includes(playlistId) ? prev.filter(id => id !== playlistId) : [...prev, playlistId]
+		);
+	};
+
+	const handleAddSongToSelectedPlaylists = async () => {
+		if (!selectedSongToAdd || selectedPlaylistsForSong.length === 0) {
+			toast.error("Please select at least one playlist.");
+			return;
+		}
+
+		let successCount = 0;
+		let errorCount = 0;
+
+		for (const playlistId of selectedPlaylistsForSong) {
+			try {
+				await axios.post(
+					`http://localhost:5000/api/playlists/${playlistId}/songs/${selectedSongToAdd._id}`,
+					{},
+					{ withCredentials: true }
+				);
+				successCount++;
+			} catch (err: any) {
+				console.error(`Failed to add song to playlist ${playlistId}:`, err);
+				errorCount++;
+				// Optionally show individual error toasts, but a summary is often better for multiple operations
+			}
+		}
+
+		if (successCount > 0) {
+			toast.success(`Added song to ${successCount} playlist(s).`);
+		}
+		if (errorCount > 0) {
+			toast.error(`Failed to add song to ${errorCount} playlist(s).`);
+		}
+
+		setShowAddToPlaylistDialog(false);
+		setSelectedSongToAdd(null);
+		setSelectedPlaylistsForSong([]);
 	};
 
 	return (
@@ -88,14 +166,15 @@ const AlbumPage = () => {
 				{/* Songs List */}
 				<div className='px-4 pb-8'>
 					{/* Table Header */}
-					<div className='grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-6 py-3 text-sm 
+					<div className='grid grid-cols-[16px_4fr_2fr_1fr_24px] gap-4 px-6 py-3 text-sm 
           text-zinc-400 border-b border-zinc-800'>
 						<div className='text-center'>#</div>
 						<div>TITLE</div>
-						<div>RELEASE DATE</div>
+						<div>ARTIST</div>
 						<div className='flex justify-end pr-4'>
 							<Clock className='h-4 w-4' />
 						</div>
+						<div></div> {/* For MoreVertical icon */}
 					</div>
 
 					{/* Songs */}
@@ -106,7 +185,7 @@ const AlbumPage = () => {
 								<div
 									key={song._id}
 									onClick={() => handlePlaySong(index)}
-									className={`grid grid-cols-[16px_4fr_2fr_1fr] gap-4 px-6 py-3 text-sm 
+									className={`grid grid-cols-[16px_4fr_2fr_1fr_24px] gap-4 px-6 py-3 text-sm 
                 hover:bg-[#2e6f57]/30 rounded-md group cursor-pointer transition-colors
                 ${isCurrentSong ? 'text-white bg-[#2e6f57]/20' : 'text-white'}`}
 								>
@@ -146,12 +225,61 @@ const AlbumPage = () => {
 									<div className='flex items-center justify-end pr-4 text-zinc-300'>
 										{formatDuration(song.duration)}
 									</div>
+
+									<div className='flex items-center justify-center'>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<button className="p-1 rounded-full hover:bg-zinc-700 text-zinc-400 hover:text-white">
+													<MoreVertical className="size-4" />
+												</button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent className="bg-zinc-800 border-zinc-700 text-white">
+												<DropdownMenuItem onSelect={() => handleAddToPlaylistClick(song)} className="hover:bg-zinc-700 cursor-pointer">
+													Add to Playlist
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</div>
 								</div>
 							);
 						})}
 					</div>
 				</div>
 			</ScrollArea>
+
+			{/* Add to Playlist Dialog */}
+			<Dialog open={showAddToPlaylistDialog} onOpenChange={setShowAddToPlaylistDialog}>
+				<DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+					<DialogHeader>
+						<DialogTitle>Add "{selectedSongToAdd?.title}" to Playlist</DialogTitle>
+					</DialogHeader>
+					<div className="grid gap-4 py-4">
+						{userPlaylists.length === 0 ? (
+							<p className="text-zinc-400">You don't have any playlists yet. Create one first!</p>
+						) : (
+							<div className="h-[200px] overflow-y-auto space-y-2">
+								{userPlaylists.map(playlist => (
+									<div key={playlist._id} className="flex items-center gap-2">
+										<Checkbox
+											id={playlist._id}
+											checked={selectedPlaylistsForSong.includes(playlist._id)}
+											onCheckedChange={() => handleTogglePlaylistSelection(playlist._id)}
+											className="border-zinc-500 data-[state=checked]:bg-green-600 data-[state=checked]:text-white"
+										/>
+										<Label htmlFor={playlist._id} className="text-white cursor-pointer">
+											{playlist.title}
+										</Label>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+					<DialogFooter>
+						<Button onClick={() => setShowAddToPlaylistDialog(false)} variant="ghost">Cancel</Button>
+						<Button onClick={handleAddSongToSelectedPlaylists} className="bg-green-600 hover:bg-green-700" disabled={selectedPlaylistsForSong.length === 0 || !currentUser}>Add to Playlists</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 };

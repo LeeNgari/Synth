@@ -1,9 +1,12 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Bot, User, Sparkles, Music, MessageSquare, Send, RotateCcw, Loader2 } from "lucide-react";
 import axios from "axios";
 import { Song } from "@/types";
 import PlayButton from "@/pages/home/components/PlayButton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
 
 interface Message {
 	role: "user" | "ai";
@@ -19,6 +22,10 @@ export default function AiChat() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [promptHistory, setPromptHistory] = useState<string[]>([]);
 	const chatEndRef = useRef<HTMLDivElement>(null);
+
+	const [showCreatePlaylistDialog, setShowCreatePlaylistDialog] = useState(false);
+	const [newPlaylistName, setNewPlaylistName] = useState("");
+	const [latestAiSongs, setLatestAiSongs] = useState<Song[] | null>(null);
 
 	const scrollToBottom = () => {
 		chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,6 +68,12 @@ export default function AiChat() {
 					songs: res.data.songs,
 				};
 				setMessages((prev) => [...prev, aiMessage]);
+
+				if (aiMessage.songs && aiMessage.songs.length > 0) {
+					setLatestAiSongs(aiMessage.songs);
+				} else {
+					setLatestAiSongs(null);
+				}
 			} else {
 				const historyToSend = [...chatHistory, userMessage]
 				const res = await axios.post<{ response: string }>(
@@ -101,8 +114,56 @@ export default function AiChat() {
 		if (activeTab === "music") {
 			setMessages([]);
 			setPromptHistory([]);
+			setLatestAiSongs(null);
 		} else {
 			setChatHistory([]);
+		}
+	};
+
+	const handleFinalizePlaylist = () => {
+		if (!latestAiSongs || latestAiSongs.length === 0) {
+			toast.error("No songs to finalize into a playlist.");
+			return;
+		}
+		setNewPlaylistName(""); // Reset input
+		setShowCreatePlaylistDialog(true);
+	};
+
+	const handleCreatePlaylistFromAi = async () => {
+		if (!newPlaylistName.trim()) {
+			toast.error("Please enter a playlist name.");
+			return;
+		}
+		if (!latestAiSongs || latestAiSongs.length === 0) {
+			toast.error("No songs to create playlist from.");
+			return;
+		}
+
+		const songIds = latestAiSongs.map(song => song._id);
+
+		try {
+			const res = await axios.post(
+				"http://localhost:5000/api/playlists/create",
+				{
+					title: newPlaylistName,
+					description: "Playlist created by Aurora AI",
+					songIds: songIds,
+					isPublic: false, // Private playlist
+				},
+				{ withCredentials: true }
+			);
+
+			if (res.data.success) {
+				toast.success(`Playlist "${newPlaylistName}" created successfully!`);
+				setShowCreatePlaylistDialog(false);
+				setNewPlaylistName("");
+				setLatestAiSongs(null); // Clear the latest songs after creating playlist
+			} else {
+				toast.error(res.data.message || "Failed to create playlist.");
+			}
+		} catch (error) {
+			console.error("Error creating playlist from AI:", error);
+			toast.error("Failed to create playlist.");
 		}
 	};
 
@@ -111,6 +172,7 @@ export default function AiChat() {
 	return (
 		<div className='w-[400px]  rounded-lg h-full bg-zinc-800/40 text-white flex flex-col absolute right-0 z-40 shadow-xl animate-fade-in border-l border-zinc-600/30 backdrop-blur-sm'>
 			{/* Header */}
+
 			<div className='p-6 border-b border-zinc-600/30 bg-gradient-to-r from-[#2e6f57]/40 to-transparent'>
 				<h2 className='text-2xl font-bold flex items-center gap-2'>
 					<Sparkles className='text-[#4fd1a5]' size={20} />
@@ -167,6 +229,20 @@ export default function AiChat() {
 								</ul>
 							)}
 						</div>
+						{/* Finalize Playlist Button - Rendered here for each message with songs */}
+						{message.role === "ai" && message.songs && message.songs.length > 0 && (
+							<div className="flex justify-end mt-2">
+								<Button
+									onClick={() => {
+										setLatestAiSongs(message.songs || null);
+										handleFinalizePlaylist();
+									}}
+									className="bg-[#4fd1a5] hover:bg-[#2e6f57] text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors"
+								>
+									Finalize as Playlist
+								</Button>
+							</div>
+						)}
 					</div>
 				))}
 				{isLoading && (
@@ -257,6 +333,28 @@ export default function AiChat() {
 					</button>
 				</div>
 			</div>
+
+			{/* Create Playlist Dialog */}
+			<Dialog open={showCreatePlaylistDialog} onOpenChange={setShowCreatePlaylistDialog}>
+				<DialogContent className="bg-zinc-900 border-zinc-800 text-white">
+					<DialogHeader>
+						<DialogTitle>Create Playlist from AI</DialogTitle>
+					</DialogHeader>
+					<div className="grid gap-4 py-4">
+						<Input
+							id="playlistName"
+							value={newPlaylistName}
+							onChange={(e) => setNewPlaylistName(e.target.value)}
+							placeholder="Enter playlist name"
+							className="bg-zinc-800 border-zinc-700"
+						/>
+					</div>
+					<DialogFooter>
+						<Button onClick={() => setShowCreatePlaylistDialog(false)} variant="ghost">Cancel</Button>
+						<Button onClick={handleCreatePlaylistFromAi} className="bg-green-600 hover:bg-green-700">Create Playlist</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
