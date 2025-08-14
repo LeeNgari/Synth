@@ -109,3 +109,81 @@ export const getPlaylistById = async (req, res, next) => {
     next(err);
   }
 };
+
+export const updatePlaylist = async (req, res, next) => {
+  try {
+    const { playlistId } = req.params;
+    const { title, description, songIds } = req.body;
+    const currentUser = await user.findOne({ clerkId: req.auth.userId });
+
+    const playlist = await Playlist.findById(playlistId);
+    if (!playlist) {
+      return res.status(404).json({ message: "Playlist not found" });
+    }
+
+    // Check if user is owner or admin
+    if (!playlist.createdBy.equals(currentUser._id) && currentUser.role !== 'admin') {
+      return res.status(403).json({ message: "You do not have permission to edit this playlist" });
+    }
+
+    playlist.title = title || playlist.title;
+    playlist.description = description || playlist.description;
+    if (songIds !== undefined) {
+      playlist.songs = songIds; // Replace existing songs with the new list
+    }
+
+    await playlist.save();
+
+    res.status(200).json({ success: true, message: "Playlist updated successfully", playlist });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deletePlaylist = async (req, res, next) => {
+  try {
+    const { playlistId } = req.params;
+    const currentUser = await user.findOne({ clerkId: req.auth.userId });
+
+    const playlist = await Playlist.findById(playlistId);
+    if (!playlist) {
+      return res.status(404).json({ message: "Playlist not found" });
+    }
+
+    // Check if user is owner or admin
+    if (!playlist.createdBy.equals(currentUser._id) && currentUser.role !== 'admin') {
+      return res.status(403).json({ message: "You do not have permission to delete this playlist" });
+    }
+
+    await playlist.deleteOne();
+
+    res.status(200).json({ success: true, message: "Playlist deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const removeSongFromPlaylist = async (req, res, next) => {
+  try {
+    const { playlistId, songId } = req.params;
+    const currentUser = await user.findOne({ clerkId: req.auth.userId });
+
+    const playlist = await Playlist.findById(playlistId);
+    if (!playlist) {
+      return res.status(404).json({ message: "Playlist not found" });
+    }
+
+    // Check if user is owner or admin
+    if (!playlist.createdBy.equals(currentUser._id) && currentUser.role !== 'admin') {
+      return res.status(403).json({ message: "You do not have permission to modify this playlist" });
+    }
+
+    // Remove the song from the playlist
+    playlist.songs = playlist.songs.filter(s => s.toString() !== songId);
+    await playlist.save();
+
+    res.status(200).json({ success: true, message: "Song removed from playlist", playlist });
+  } catch (err) {
+    next(err);
+  }
+};
