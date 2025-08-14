@@ -3,7 +3,7 @@ import { song } from "../models/song-model.js";
 import { user } from "../models/user-model.js";
 import path from "path";
 import { fileURLToPath } from "url";
-import { enhanceSongs } from "./song-controller..js";
+import { enhanceSongs } from "./song-controller.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

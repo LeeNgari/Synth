@@ -1,5 +1,17 @@
 import { user } from "../models/user-model.js"
 
+export const getMe = async (req, res, next) => {
+    try {
+        const dbUser = await user.findOne({ clerkId: req.auth.userId });
+        if (!dbUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        res.status(200).json(dbUser);
+    } catch (err) {
+        next(err);
+    }
+}
+
 export const callback = async (req, res, next) => {
     console.log("Auth Callback called")
     try {

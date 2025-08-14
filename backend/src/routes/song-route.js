@@ -4,7 +4,7 @@ import {
     getAllSongs, getSongsByIds, getFeaturedSongs, getMadeForYouSongs, getTrendingSongs, likeSong,
     dislikeSong, addToHistory, searchSongs, getListeningHistory,
     getLikedSongs, getPopularSongs
-} from "../controllers/song-controller..js"
+} from "../controllers/song-controller.js"
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.get("/popular", getPopularSongs);
 
 router.post("/:songId/like", protectRoute, likeSong);
 router.post("/:songId/dislike", protectRoute, dislikeSong);
-router.post("/history/:songId", addToHistory)
+router.post("/history/:songId", protectRoute, addToHistory)
 
 router.get("/by-ids", getSongsByIds);
 
