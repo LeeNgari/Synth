@@ -13,7 +13,6 @@ const SongsTabContent = () => {
 					</h2>
 					<p className="text-white">Manage your music tracks</p>
 				</div>
-				<AddSongDialog />
 			</div>
 			<SongsTable />
 		</div>

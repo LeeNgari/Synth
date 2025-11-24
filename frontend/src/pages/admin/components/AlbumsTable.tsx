@@ -18,7 +18,7 @@ const AlbumsTable = () => {
 					<TableHead className='w-[50px] '></TableHead>
 					<TableHead>Title</TableHead>
 					<TableHead>Artist</TableHead>
-					<TableHead>Release Year</TableHead>
+
 					<TableHead>Songs</TableHead>
 					<TableHead className='text-right'>Actions</TableHead>
 				</TableRow>

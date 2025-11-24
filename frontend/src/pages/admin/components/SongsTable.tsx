@@ -29,7 +29,6 @@ const SongsTable = () => {
 					<TableHead className='w-[50px]'></TableHead>
 					<TableHead>Title</TableHead>
 					<TableHead>Artist</TableHead>
-					<TableHead>Release Date</TableHead>
 					<TableHead className='text-right'>Actions</TableHead>
 				</TableRow>
 			</TableHeader>

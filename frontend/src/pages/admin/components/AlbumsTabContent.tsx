@@ -13,7 +13,6 @@ const AlbumsTabContent = () => {
 					</h2>
 					<p className="text-white">Manage your album collection</p>
 				</div>
-				<AddAlbumDialog />
 			</div>
 			<AlbumsTable />
 		</div>
